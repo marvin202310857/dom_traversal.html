@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DOM Traversal Interactive</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+
+    header {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+    }
+
+    .box {
+      border: 1px solid black;
+      margin: 0 auto;
+      padding: 10px;
+      width: 300px;
+    }
+
+    .grandparent {
+      background-color: #FBE760;
+      padding: 15px;
+    }
+
+    .parent {
+      background-color: #9AD5EF;
+      margin: 10px 0;
+      padding: 10px;
+    }
+
+    .child {
+      background-color: #fdd;
+      margin: 5px 0;
+      padding: 5px;
+    }
+
+    .highlight {
+      border: 2px solid red;
+      box-shadow: 0 0 10px red;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Profile Info -->
+  <header>
+    <h2>Name:Marvin Peñero Buendia</h2>
+    <p>Sex: Male</p>
+    <p>Address: Danlog, San Jose Camarines Sur</p>
+    <p>Course: BSIT, 2 B</p>
+    <p>School: Partido State University</p>
+    <p>Semester: 2nd Semester, AY 2024-2025</p>
+    <p>Subject: PF2</p>
+    <p>Instructor: Arjay Abio</p>
+  </header>
+
+  <h1>DOM Traversal Interactive</h1>
+
+  <!-- DOM Tree -->
+  <div class="box grandparent" id="grandparent">
+    Grandparent
+    <div class="parent">
+      Parent 1
+      <div class="child">Child 1</div>
+      <div class="child">Child 2</div>
+    </div>
+    <div class="parent">
+      Parent 2
+      <div class="child">Child 3</div>
+      <div class="child">Child 4</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div style="margin-top: 20px;">
+    <button onclick="traverseDown()">Traverse Down</button>
+    <button onclick="traverseUp()">Traverse Up</button>
+    <button onclick="traverseNextSibling()">Traverse Next Sibling</button>
+    <button onclick="traversePrevSibling()">Traverse Previous Sibling</button>
+    <button onclick="addChild()">Add Child</button>
+    <button onclick="deleteCurrent()">Delete Current</button>
+  </div>
+
+  <script>
+    let selected = null;
+
+    // Enable selection
+    document.querySelectorAll('.grandparent, .parent, .child').forEach(el => {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (selected) selected.classList.remove('highlight');
+        selected = this;
+        selected.classList.add('highlight');
+      });
+    });
+
+    function traverseDown() {
+      if (!selected) return alert('No node selected.');
+      const firstChild = [...selected.children].find(el => el.classList.contains('parent') || el.classList.contains('child'));
+      if (firstChild) {
+        selected.classList.remove('highlight');
+        selected = firstChild;
+        selected.classList.add('highlight');
+      } else {
+        alert('No child to traverse down to.');
+      }
+    }
+
+    function traverseUp() {
+      if (!selected) return alert('No node selected.');
+      const parent = selected.parentElement;
+      if (parent && (parent.classList.contains('grandparent') || parent.classList.contains('parent'))) {
+        selected.classList.remove('highlight');
+        selected = parent;
+        selected.classList.add('highlight');
+      } else {
+        alert('No parent to traverse up to.');
+      }
+    }
+
+    function traverseNextSibling() {
+      if (!selected) return alert('No node selected.');
+      const next = selected.nextElementSibling;
+      if (next && (next.classList.contains('parent') || next.classList.contains('child'))) {
+        selected.classList.remove('highlight');
+        selected = next;
+        selected.classList.add('highlight');
+      } else {
+        alert('No next sibling.');
+      }
+    }
+
+    function traversePrevSibling() {
+      if (!selected) return alert('No node selected.');
+      const prev = selected.previousElementSibling;
+      if (prev && (prev.classList.contains('parent') || prev.classList.contains('child'))) {
+        selected.classList.remove('highlight');
+        selected = prev;
+        selected.classList.add('highlight');
+      } else {
+        alert('No previous sibling.');
+      }
+    }
+
+    function addChild() {
+      if (!selected) return alert('No node selected.');
+      if (selected.classList.contains('grandparent')) {
+        const newParent = document.createElement('div');
+        newParent.className = 'parent';
+        newParent.innerHTML = `Parent ${Date.now()}<div class="child">Child A</div><div class="child">Child B</div>`;
+        selected.appendChild(newParent);
+        addClickListeners(newParent);
+      } else if (selected.classList.contains('parent')) {
+        const newChild = document.createElement('div');
+        newChild.className = 'child';
+        newChild.textContent = 'New Child';
+        selected.appendChild(newChild);
+        newChild.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (selected) selected.classList.remove('highlight');
+          selected = this;
+          selected.classList.add('highlight');
+        });
+      } else {
+        alert('Cannot add a child to a child node.');
+      }
+    }
+
+    function deleteCurrent() {
+      if (!selected) return alert('No node selected.');
+      if (selected.id === 'grandparent') {
+        alert('Cannot delete the grandparent node.');
+        return;
+      }
+      const toDelete = selected;
+      selected = null;
+      toDelete.remove();
+    }
+
+    // Attach click listeners recursively to new nodes
+    function addClickListeners(node) {
+      node.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (selected) selected.classList.remove('highlight');
+        selected = this;
+        selected.classList.add('highlight');
+      });
+      node.querySelectorAll('.child').forEach(child => {
+        child.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (selected) selected.classList.remove('highlight');
+          selected = this;
+          selected.classList.add('highlight');
+        });
+      });
+    }
+  </script>
+
+</body>
+</html>
